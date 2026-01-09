@@ -2,9 +2,6 @@ import NextAuth, { type NextAuthOptions } from "next-auth"
 import EmailProvider from "next-auth/providers/email"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
-import { Resend } from "resend"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
