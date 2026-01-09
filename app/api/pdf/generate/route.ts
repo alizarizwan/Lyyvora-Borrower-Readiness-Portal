@@ -3,6 +3,8 @@ import React from "react"
 import { renderToBuffer } from "@react-pdf/renderer"
 import { BankReadinessPdf } from "./BankReadinessPdf"
 
+//export const runtime = "nodejs"
+
 export async function POST(req: Request) {
   try {
     const scoreResult = await req.json()
@@ -11,7 +13,7 @@ export async function POST(req: Request) {
       React.createElement(BankReadinessPdf, { scoreResult })
     )
 
-    return new NextResponse(Buffer.from(pdfBuffer), {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition":

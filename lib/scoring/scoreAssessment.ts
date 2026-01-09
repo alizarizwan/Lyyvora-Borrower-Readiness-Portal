@@ -1,4 +1,4 @@
-import { SCORING_RULES, SCORE_THRESHOLDS } from "@/lib/scoringRules"
+import { SCORING_RULES, SCORE_THRESHOLDS } from "@/lib/scoring/scoringRules"
 
 /**
  * Final assessment scoring engine

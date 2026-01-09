@@ -9,12 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { AlertCircle } from "lucide-react"
-<<<<<<< HEAD
 import { useRouter } from "next/navigation"
 import { useAssessmentStore } from "@/lib/store/assessmentStore"
 import { calculateScore } from "@/lib/assessment/calculateScore"
-=======
->>>>>>> af1a5628a301531495a5f09b3b625c50ff0feb27
 
 type FormData = {
   timeInBusiness: string
@@ -36,7 +33,6 @@ type Warning = {
   message: string
   actionItem: string
 }
-<<<<<<< HEAD
 
 type SectionScore = {
   label: string
@@ -55,8 +51,6 @@ type ScoreResult = {
 }
 
 
-=======
->>>>>>> af1a5628a301531495a5f09b3b625c50ff0feb27
 
 export default function AssessmentPage() {
   const { setScoreResult } = useAssessmentStore()
@@ -156,31 +150,20 @@ export default function AssessmentPage() {
   
 
   const handleSubmit = () => {
-<<<<<<< HEAD
     const scoreResult = calculateScore(formData)
     setScoreResult(scoreResult)
     router.push("/results")
   }
 
 
-=======
-    // Store form data and navigate to results
-    localStorage.setItem("assessmentData", JSON.stringify(formData))
-    window.location.href = "/results"
-  }
-
->>>>>>> af1a5628a301531495a5f09b3b625c50ff0feb27
   const toggleCheckbox = (field: "compliance" | "documents", value: string) => {
     const current = formData[field]
     const updated = current.includes(value) ? current.filter((item) => item !== value) : [...current, value]
     handleInputChange(field, updated)
   }
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> af1a5628a301531495a5f09b3b625c50ff0feb27
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
