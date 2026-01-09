@@ -17,6 +17,7 @@ export const authOptions: NextAuthOptions = {
         },
       },
       from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+      maxAge: 24 * 60 * 60, // 24 hours
     }),
   ],
   session: {
@@ -28,11 +29,20 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      // If the callback URL is a relative path, prepend baseUrl
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`
+      }
+      // If the callback URL is on the same origin, allow it
+      try {
+        if (new URL(url).origin === baseUrl) {
+          return url
+        }
+      } catch {
+        // Invalid URL
+      }
+      // Default to assessment page after email verification
+      return `${baseUrl}/assessment`
     },
     async session({ session, user }) {
       if (session.user) {

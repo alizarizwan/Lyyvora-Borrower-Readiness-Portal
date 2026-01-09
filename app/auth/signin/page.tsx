@@ -28,6 +28,7 @@ function SignInContent() {
       const result = await signIn("email", {
         email,
         redirect: false,
+        callbackUrl: "/assessment", // Redirect to assessment after email verification
       })
 
       if (result?.error) {

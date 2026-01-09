@@ -17,16 +17,17 @@ function SaveContent() {
   const [magicLink, setMagicLink] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function createMagicLink() {
+      setError(null)
       try {
         // Get formData from sessionStorage if available
         const formDataStr = sessionStorage.getItem("assessmentFormData")
         const formData = formDataStr ? JSON.parse(formDataStr) : answers
         const currentStepVal = sessionStorage.getItem("assessmentStep") ? parseInt(sessionStorage.getItem("assessmentStep") as string) : currentStep
 
-        console.log("Creating magic link with:", { formData, currentStepVal })
         const res = await fetch("/api/assessment/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -36,19 +37,16 @@ function SaveContent() {
           }),
         })
 
-        console.log("Response status:", res.status)
         const text = await res.text()
-        console.log("Response text:", text)
-        
         if (!res.ok) {
           throw new Error(`API returned ${res.status}: ${text}`)
         }
 
         const data = JSON.parse(text)
-        console.log("Response:", data)
         setMagicLink(data.magicLink || "")
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to create magic link", err)
+        setError(err?.message || "Failed to create magic link")
       } finally {
         setLoading(false)
       }
@@ -123,15 +121,24 @@ function SaveContent() {
             <p className="text-xs text-gray-500 mt-3">
               Keep this link safe — anyone with it can access your assessment.
             </p>
+            {error ? (
+              <p className="text-sm text-red-600 mt-3">{error}</p>
+            ) : null}
           </div>
 
           {/* Actions */}
           <div className="flex gap-3 justify-center">
-            <Link href={`/resume/${magicLink}`}>
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+            {magicLink ? (
+              <Link href={`/resume/${magicLink}`}>
+                <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+                  Resume Now
+                </Button>
+              </Link>
+            ) : (
+              <Button disabled className="opacity-60" title="Waiting for magic link">
                 Resume Now
               </Button>
-            </Link>
+            )}
 
             <Link href="/">
               <Button
@@ -141,6 +148,41 @@ function SaveContent() {
                 Start New
               </Button>
             </Link>
+
+            {!magicLink && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setLoading(true)
+                  setError(null)
+                  // retry creating magic link
+                  ;(async () => {
+                    try {
+                      const formDataStr = sessionStorage.getItem("assessmentFormData")
+                      const formData = formDataStr ? JSON.parse(formDataStr) : answers
+                      const currentStepVal = sessionStorage.getItem("assessmentStep") ? parseInt(sessionStorage.getItem("assessmentStep") as string) : currentStep
+                      const res = await fetch("/api/assessment/create", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ answers: formData, currentStep: currentStepVal }),
+                      })
+
+                      const text = await res.text()
+                      if (!res.ok) throw new Error(`API returned ${res.status}: ${text}`)
+                      const data = JSON.parse(text)
+                      setMagicLink(data.magicLink || "")
+                    } catch (err: any) {
+                      console.error(err)
+                      setError(err?.message || "Failed to create magic link")
+                    } finally {
+                      setLoading(false)
+                    }
+                  })()
+                }}
+              >
+                Retry
+              </Button>
+            )}
           </div>
         </Card>
       </main>

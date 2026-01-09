@@ -54,7 +54,7 @@ type ScoreResult = {
 
 
 function AssessmentContent() {
-  const { setScoreResult, loadDraft } = useAssessmentStore()
+  const { setScoreResult, loadDraft, answers, currentStep } = useAssessmentStore()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
@@ -82,7 +82,21 @@ function AssessmentContent() {
     console.log("Draft param from URL:", draftParam)
     console.log("Step param from URL:", stepParam)
     
-    if (draftParam) {
+    // First, try to get data from the assessment store (loaded from magic link)
+    if (Object.keys(answers).length > 0) {
+      console.log("Loading from assessment store:", answers)
+      setFormData((prev) => ({ ...prev, ...answers }))
+      
+      // Set page from store's currentStep or URL param
+      if (currentStep > 1) {
+        setPage(currentStep)
+      } else if (stepParam) {
+        const step = parseInt(stepParam, 10)
+        console.log("Setting page from URL to:", step)
+        setPage(step)
+      }
+    } else if (draftParam) {
+      // Fall back to draft param if no store data
       try {
         const draftAnswers = JSON.parse(draftParam)
         console.log("Parsed draft answers:", draftAnswers)
@@ -97,7 +111,7 @@ function AssessmentContent() {
         console.error("Failed to load draft:", e)
       }
     }
-  }, [searchParams])
+  }, [searchParams, answers, currentStep])
 
   const handleInputChange = (field: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
