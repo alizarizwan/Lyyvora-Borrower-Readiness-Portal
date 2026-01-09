@@ -54,7 +54,7 @@ type ScoreResult = {
 
 
 function AssessmentContent() {
-  const { setScoreResult, loadDraft, answers, currentStep } = useAssessmentStore()
+  const { setScoreResult, loadDraft, setAnswer, answers, currentStep } = useAssessmentStore()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
@@ -115,6 +115,8 @@ function AssessmentContent() {
 
   const handleInputChange = (field: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    // Also save to store so it persists
+    setAnswer(field, value)
 
     // Conditional logic - Check for warnings
     const newWarnings: Warning[] = []
@@ -190,6 +192,11 @@ function AssessmentContent() {
   
 
   const handleSubmit = () => {
+    // Ensure all current form data is saved to store
+    Object.entries(formData).forEach(([key, value]) => {
+      setAnswer(key as keyof FormData, value)
+    })
+    
     const scoreResult = calculateScore(formData)
     setScoreResult(scoreResult)
     router.push("/results")
