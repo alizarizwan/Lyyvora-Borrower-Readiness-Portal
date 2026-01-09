@@ -127,7 +127,7 @@ function SaveContent() {
 
           {/* Actions */}
           <div className="flex gap-3 justify-center">
-            <Link href={typeof window !== 'undefined' ? `${window.location.origin}/resume/${magicLink}` : `/resume/${magicLink}`}>
+            <Link href={`/resume/${magicLink}`}>
               <Button className="bg-slate-900 hover:bg-slate-800 text-white">
                 Resume Now
               </Button>
