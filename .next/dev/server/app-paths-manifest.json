@@ -1,8 +1,0 @@
-{
-  "/action-plan/page": "app/action-plan/page.js",
-  "/api/assessment/create/route": "app/api/assessment/create/route.js",
-  "/api/pdf/generate/route": "app/api/pdf/generate/route.js",
-  "/assessment/page": "app/assessment/page.js",
-  "/results/page": "app/results/page.js",
-  "/save/page": "app/save/page.js"
-}
