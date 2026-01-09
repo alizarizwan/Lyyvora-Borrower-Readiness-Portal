@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Draft {
+  magicLink          String   @id
+  answers            Json
+  currentStep        Int
+  scoreResult        Json?
+  completedChecklist Json?
+  createdAt          DateTime @default(now())
+}
