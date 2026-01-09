@@ -75,7 +75,7 @@ function AssessmentContent() {
     fundingTimeline: "",
   })
 
-  // Load draft data if resuming
+  // Load draft data if resuming - only run once on mount
   useEffect(() => {
     const draftParam = searchParams.get("draft")
     const stepParam = searchParams.get("step")
@@ -87,13 +87,13 @@ function AssessmentContent() {
       console.log("Loading from assessment store:", answers)
       setFormData((prev) => ({ ...prev, ...answers }))
       
-      // Set page from store's currentStep or URL param
-      if (currentStep > 1) {
-        setPage(currentStep)
-      } else if (stepParam) {
+      // Set page from store's currentStep or URL param - only if not already set
+      if (stepParam) {
         const step = parseInt(stepParam, 10)
         console.log("Setting page from URL to:", step)
         setPage(step)
+      } else if (currentStep > 1) {
+        setPage(currentStep)
       }
     } else if (draftParam) {
       // Fall back to draft param if no store data
@@ -111,7 +111,8 @@ function AssessmentContent() {
         console.error("Failed to load draft:", e)
       }
     }
-  }, [searchParams, answers, currentStep])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]) // Only re-run when URL changes, not when answers/currentStep change
 
   const handleInputChange = (field: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
