@@ -41,18 +41,48 @@ const ASSESSMENT_INSIGHTS: Record<string, {
 
 export default function ResultsPage() {
   const router = useRouter()
-  const { scoreResult } = useAssessmentStore()
+  const { scoreResult, answers } = useAssessmentStore()
 
   const [displayScore, setDisplayScore] = useState<number | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [magicLink, setMagicLink] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!scoreResult) {
       router.replace("/assessment")
     } else {
       setDisplayScore(scoreResult.score)
+      
+      // Auto-save the assessment
+      const saveAssessment = async () => {
+        try {
+          const res = await fetch("/api/assessment/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answers,
+              scoreResult,
+            }),
+          })
+
+          if (!res.ok) {
+            const errorData = await res.json()
+            setSaveError("Assessment saved but could not generate link")
+            return
+          }
+
+          const data = await res.json()
+          setMagicLink(data.magicLink)
+        } catch (error) {
+          console.error("Failed to auto-save assessment:", error)
+          setSaveError("Failed to save assessment")
+        }
+      }
+
+      saveAssessment()
     }
-  }, [scoreResult, router])
+  }, [scoreResult, router, answers])
 
   if (!scoreResult || displayScore === null) {
     return <div className="p-12 text-center">Loading results…</div>
@@ -183,6 +213,44 @@ export default function ResultsPage() {
             </Button>
           </div>
         </Card>
+
+        {/* Save Link Section */}
+        {magicLink && (
+          <Card className="p-8 mt-8">
+            <h3 className="font-semibold mb-4">Save Your Assessment</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Your assessment has been automatically saved. Share this link to resume your progress anytime.
+            </p>
+            <div className="flex items-center gap-2 bg-secondary p-4 rounded-lg mb-4">
+              <span className="flex-1 text-sm font-mono truncate">
+                {typeof window !== 'undefined' 
+                  ? `${window.location.origin}/resume/${magicLink}` 
+                  : `https://lyyvaportal.vercel.app/resume/${magicLink}`}
+              </span>
+              <Button
+                size="sm"
+                onClick={() => {
+                  const link = typeof window !== 'undefined'
+                    ? `${window.location.origin}/resume/${magicLink}`
+                    : `https://lyyvaportal.vercel.app/resume/${magicLink}`
+                  navigator.clipboard.writeText(link)
+                  alert("Link copied to clipboard!")
+                }}
+              >
+                Copy
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Keep this link safe — anyone with it can access your assessment.
+            </p>
+          </Card>
+        )}
+
+        {saveError && (
+          <Card className="p-4 mt-8 bg-red-50 border border-red-200">
+            <p className="text-sm text-red-600">{saveError}</p>
+          </Card>
+        )}
       </div>
     </div>
   )

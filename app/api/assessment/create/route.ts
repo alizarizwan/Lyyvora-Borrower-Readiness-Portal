@@ -16,7 +16,8 @@ export async function POST(req: Request) {
         magicLink,
         userId: (session?.user as any)?.id,
         answers: JSON.stringify(body.answers ?? {}),
-        currentStep: body.currentStep ?? 1,
+        scoreResult: JSON.stringify(body.scoreResult ?? null),
+        currentStep: body.currentStep ?? 10, // Default to completed if scoreResult is provided
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     })
