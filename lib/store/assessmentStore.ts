@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, PersistStorage } from "zustand/middleware"
 import { QUESTIONS } from "@/lib/assessment/questions"
 
 type ScoreResult = {
@@ -41,22 +41,22 @@ export const useAssessmentStore = create<AssessmentState>()(
       scoreResult: null,
       completedChecklist: [],
 
-      setAnswer: (code, value) =>
-        set((state) => ({
+      setAnswer: (code: string, value: any) =>
+        set((state: AssessmentState) => ({
           answers: { ...state.answers, [code]: value },
         })),
 
       nextStep: () =>
-        set((state) => ({
+        set((state: AssessmentState) => ({
           currentStep: Math.min(state.currentStep + 1, QUESTIONS.length),
         })),
 
       prevStep: () =>
-        set((state) => ({
+        set((state: AssessmentState) => ({
           currentStep: Math.max(state.currentStep - 1, 1),
         })),
 
-      loadDraft: (data) =>
+      loadDraft: (data: Partial<AssessmentState>) =>
         set({
           answers: data.answers ?? {},
           currentStep: data.currentStep ?? 1,
@@ -64,16 +64,16 @@ export const useAssessmentStore = create<AssessmentState>()(
           completedChecklist: data.completedChecklist ?? [],
         }),
 
-      setScoreResult: (result) =>
+      setScoreResult: (result: ScoreResult) =>
         set({
           scoreResult: result,
           completedChecklist: [],
         }),
 
-      toggleChecklistItem: (code) =>
-        set((state) => ({
+      toggleChecklistItem: (code: string) =>
+        set((state: AssessmentState) => ({
           completedChecklist: state.completedChecklist.includes(code)
-            ? state.completedChecklist.filter((c) => c !== code)
+            ? state.completedChecklist.filter((c: string) => c !== code)
             : [...state.completedChecklist, code],
         })),
 
@@ -84,7 +84,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           scoreResult: null,
           completedChecklist: [],
         }),
-    }),
+    } as any),
     { name: "assessment-draft" }
-  )
+  ) as any
 )

@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button"
+import { UserMenu } from "@/components/user-menu"
 import Link from "next/link"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getServerSession(authOptions)
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
@@ -16,11 +21,7 @@ export default function LandingPage() {
               <div className="text-xs text-muted-foreground">Healthcare Finance Solutions</div>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <Button variant="default" size="sm" asChild>
-              <Link href="/assessment">Sign In</Link>
-            </Button>
-          </div>
+          <UserMenu />
         </div>
       </nav>
 
@@ -38,8 +39,8 @@ export default function LandingPage() {
           </Link>
           <div className="text-sm text-muted-foreground mb-4">
             Already started?{" "}
-            <Link href="/save" className="text-primary hover:underline">
-              Resume where you left off
+            <Link href={session ? "/dashboard" : "/save"} className="text-primary hover:underline">
+              {session ? "View my assessments" : "Resume where you left off"}
             </Link>
           </div>
 

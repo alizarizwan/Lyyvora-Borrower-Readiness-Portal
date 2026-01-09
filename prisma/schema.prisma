@@ -7,11 +7,48 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model Draft {
-  magicLink          String   @id
-  answers            Json
-  currentStep        Int
-  scoreResult        Json?
-  completedChecklist Json?
-  createdAt          DateTime @default(now())
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified DateTime?
+  sessions      Session[]
+  assessments   Assessment[]
 }
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  expires      DateTime
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Assessment {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+  answers      String
+  currentStep  Int      @default(1)
+  scoreResult  String?
+  magicLink    String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model MagicLink {
+  id            String   @id @default(cuid())
+  token         String   @unique
+  assessmentId String
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+}
+

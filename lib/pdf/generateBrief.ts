@@ -5,16 +5,7 @@ type ScoreResult = {
   category: string
   failures: string[]
   checklist: string[]
-  sections?: SectionScore[]
   whatIf?: string[]
-}
-
-type SectionScore = {
-  label: string
-  score: number
-  max: number
-  status: "good" | "warning" | "bad"
-  reason?: string
 }
 
 export function generateBrief(scoreResult: ScoreResult): Promise<Buffer> {
@@ -24,7 +15,7 @@ export function generateBrief(scoreResult: ScoreResult): Promise<Buffer> {
 
     doc.on("data", buffers.push.bind(buffers))
     doc.on("end", () => {
-      resolve(Buffer.concat(buffers))
+      resolve(Buffer.concat(buffers.map(b => b as any)))
     })
 
     // Title

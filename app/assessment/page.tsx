@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -12,6 +13,7 @@ import { AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAssessmentStore } from "@/lib/store/assessmentStore"
 import { calculateScore } from "@/lib/assessment/calculateScore"
+import { UserMenu } from "@/components/user-menu"
 
 type FormData = {
   timeInBusiness: string
@@ -51,10 +53,10 @@ type ScoreResult = {
 }
 
 
-
-export default function AssessmentPage() {
-  const { setScoreResult } = useAssessmentStore()
+function AssessmentContent() {
+  const { setScoreResult, loadDraft } = useAssessmentStore()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
   const [warnings, setWarnings] = useState<Warning[]>([])
   const [formData, setFormData] = useState<FormData>({
@@ -72,6 +74,30 @@ export default function AssessmentPage() {
     fundingAmount: "",
     fundingTimeline: "",
   })
+
+  // Load draft data if resuming
+  useEffect(() => {
+    const draftParam = searchParams.get("draft")
+    const stepParam = searchParams.get("step")
+    console.log("Draft param from URL:", draftParam)
+    console.log("Step param from URL:", stepParam)
+    
+    if (draftParam) {
+      try {
+        const draftAnswers = JSON.parse(draftParam)
+        console.log("Parsed draft answers:", draftAnswers)
+        setFormData((prev) => ({ ...prev, ...draftAnswers }))
+        
+        if (stepParam) {
+          const step = parseInt(stepParam, 10)
+          console.log("Setting page to:", step)
+          setPage(step)
+        }
+      } catch (e) {
+        console.error("Failed to load draft:", e)
+      }
+    }
+  }, [searchParams])
 
   const handleInputChange = (field: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -175,9 +201,7 @@ export default function AssessmentPage() {
             </div>
             <span className="font-semibold text-sm">Lyyvora</span>
           </Link>
-          <Button variant="default" size="sm" className="text-xs" asChild>
-            <Link href="/assessment">Sign In</Link>
-          </Button>
+          <UserMenu />
         </div>
       </nav>
 
@@ -687,11 +711,27 @@ export default function AssessmentPage() {
 
         {/* Save Progress Link */}
         <div className="text-center mt-6">
-          <Link href="/save" className="text-sm text-primary hover:underline">
+          <button
+            onClick={() => {
+              // Save formData to sessionStorage before navigating
+              sessionStorage.setItem("assessmentFormData", JSON.stringify(formData))
+              sessionStorage.setItem("assessmentStep", String(page))
+              router.push("/save")
+            }}
+            className="text-sm text-primary hover:underline cursor-pointer"
+          >
             Save & Resume Later
-          </Link>
+          </button>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AssessmentPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <AssessmentContent />
+    </Suspense>
   )
 }

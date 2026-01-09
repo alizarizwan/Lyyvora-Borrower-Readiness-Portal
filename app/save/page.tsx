@@ -1,14 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { Check } from "lucide-react"
 import { useAssessmentStore } from "@/lib/store/assessmentStore"
+import { UserMenu } from "@/components/user-menu"
+import { Suspense } from "react"
 
-export default function SavePage() {
-  const { answers, currentStep } = useAssessmentStore()
+function SaveContent() {
+  const { answers, currentStep, setAnswer, nextStep } = useAssessmentStore()
+  const searchParams = useSearchParams()
 
   const [magicLink, setMagicLink] = useState<string>("")
   const [loading, setLoading] = useState(true)
@@ -17,17 +21,32 @@ export default function SavePage() {
   useEffect(() => {
     async function createMagicLink() {
       try {
+        // Get formData from sessionStorage if available
+        const formDataStr = sessionStorage.getItem("assessmentFormData")
+        const formData = formDataStr ? JSON.parse(formDataStr) : answers
+        const currentStepVal = sessionStorage.getItem("assessmentStep") ? parseInt(sessionStorage.getItem("assessmentStep") as string) : currentStep
+
+        console.log("Creating magic link with:", { formData, currentStepVal })
         const res = await fetch("/api/assessment/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            answers,
-            currentStep,
+            answers: formData,
+            currentStep: currentStepVal,
           }),
         })
 
-        const data = await res.json()
-        setMagicLink(data.magicLink)
+        console.log("Response status:", res.status)
+        const text = await res.text()
+        console.log("Response text:", text)
+        
+        if (!res.ok) {
+          throw new Error(`API returned ${res.status}: ${text}`)
+        }
+
+        const data = JSON.parse(text)
+        console.log("Response:", data)
+        setMagicLink(data.magicLink || "")
       } catch (err) {
         console.error("Failed to create magic link", err)
       } finally {
@@ -36,7 +55,7 @@ export default function SavePage() {
     }
 
     createMagicLink()
-  }, [answers, currentStep])
+  }, [])
 
   if (loading) {
     return (
@@ -57,9 +76,7 @@ export default function SavePage() {
             </div>
             <span className="font-semibold text-sm">Lyyvora</span>
           </div>
-          <Button size="sm" asChild>
-            <Link href="/assessment">Sign In</Link>
-          </Button>
+          <UserMenu />
         </div>
       </header>
 
@@ -86,14 +103,15 @@ export default function SavePage() {
 
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded p-3">
               <span className="flex-1 text-sm text-gray-600 font-mono truncate">
-                {magicLink}
+                {typeof window !== 'undefined' ? `${window.location.origin}/resume/${magicLink}` : `http://localhost:3000/resume/${magicLink}`}
               </span>
 
               <Button
                 size="sm"
                 className="bg-slate-900 hover:bg-slate-800 text-white whitespace-nowrap"
                 onClick={() => {
-                  navigator.clipboard.writeText(magicLink)
+                  const fullLink = typeof window !== 'undefined' ? `${window.location.origin}/resume/${magicLink}` : `http://localhost:3000/resume/${magicLink}`
+                  navigator.clipboard.writeText(fullLink)
                   setCopied(true)
                   setTimeout(() => setCopied(false), 1500)
                 }}
@@ -109,7 +127,7 @@ export default function SavePage() {
 
           {/* Actions */}
           <div className="flex gap-3 justify-center">
-            <Link href="/assessment">
+            <Link href={typeof window !== 'undefined' ? `${window.location.origin}/resume/${magicLink}` : `/resume/${magicLink}`}>
               <Button className="bg-slate-900 hover:bg-slate-800 text-white">
                 Resume Now
               </Button>
@@ -176,5 +194,13 @@ export default function SavePage() {
       </footer>
 
     </div>
+  )
+}
+
+export default function SavePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <SaveContent />
+    </Suspense>
   )
 }
